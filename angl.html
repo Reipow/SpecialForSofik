@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тренажёр: Communication Skills</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;min-height:100vh;
+    background:linear-gradient(135deg,#4f6df5 0%,#7b5cf0 50%,#a24bd8 100%);
+    display:flex;align-items:center;justify-content:center;padding:20px;color:#222}
+  .wrap{width:100%;max-width:640px}
+  .screen{background:#fff;border-radius:24px;padding:36px 32px;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:pop .35s ease}
+  .screen.nobg{background:transparent;box-shadow:none;padding:0}
+  .hidden{display:none!important}
+  h1{font-size:28px;margin-bottom:6px;text-align:center}
+  .subtitle{text-align:center;color:#777;margin-bottom:10px}
+  .btn{border:none;border-radius:12px;padding:14px 26px;font-size:16px;font-weight:600;cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:linear-gradient(135deg,#4f6df5,#8a5cf6);color:#fff;box-shadow:0 6px 18px rgba(90,90,246,.35)}
+  .btn-primary:hover{box-shadow:0 8px 22px rgba(90,90,246,.5)}
+  .btn-ghost{background:transparent;color:#999;text-decoration:underline;font-weight:500;padding:10px}
+  .btn-ghost:hover{color:#555}
+  .center{text-align:center}
+
+  /* меню */
+  .menu-label{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#999;margin:20px 0 10px}
+  .mode-row{display:flex;gap:12px}
+  .mode{flex:1;border:2px solid #dfe3f0;background:#fff;border-radius:14px;padding:14px;cursor:pointer;text-align:left;font-family:inherit;transition:border .15s,background .15s}
+  .mode b{display:block;font-size:17px;margin-bottom:4px}
+  .mode span{color:#888;font-size:13px;line-height:1.35;display:block}
+  .mode.active{border-color:#4f6df5;background:#f2f5ff;box-shadow:0 4px 14px rgba(79,109,245,.25)}
+  .toggle{display:flex;gap:12px;align-items:center;background:#f7f8fc;border-radius:14px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+  .toggle input{display:none}
+  .switch{width:46px;height:26px;background:#d5d9e8;border-radius:99px;position:relative;flex-shrink:0;transition:background .2s}
+  .switch::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .toggle input:checked + .switch{background:#4f6df5}
+  .toggle input:checked + .switch::after{left:23px}
+  .toggle b{font-size:15px}
+  .toggle small{display:block;color:#888;font-size:12.5px;margin-top:2px}
+
+  /* игра */
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;font-size:14px;color:#fff;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.2)}
+  .bar{flex:1;height:8px;background:rgba(255,255,255,.35);border-radius:99px;overflow:hidden}
+  #bar-fill{height:100%;width:0;background:#fff;border-radius:99px;transition:width .3s}
+  #hearts{font-size:16px;letter-spacing:2px}
+  #timer{background:rgba(255,255,255,.22);padding:3px 12px;border-radius:99px;min-width:52px;text-align:center}
+  #timer.low{background:#e74c3c}
+  .card{background:#fff;border-radius:24px;padding:34px 30px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .label{color:#999;font-size:13px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;text-align:center}
+  .ru{font-size:26px;font-weight:700;text-align:center;margin-bottom:26px;line-height:1.35;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+  .option{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:13px 16px;
+    border:2px solid #dfe3f0;border-radius:14px;background:#fff;font-size:16px;cursor:pointer;margin-bottom:10px;transition:border .15s,background .15s}
+  .option:hover:not([data-done]){border-color:#7b8cff;background:#f6f8ff}
+  .option[data-done]{cursor:default}
+  .option.wrong{border-color:#e74c3c;background:#fdecea;color:#b03a2e;opacity:.8}
+  .option.correct{border-color:#2ecc71;background:#e6f9ee;color:#1e8449;font-weight:700}
+  input{width:100%;padding:16px 18px;font-size:18px;border:2px solid #dfe3f0;border-radius:14px;outline:none;transition:border .15s,box-shadow .15s}
+  input:focus{border-color:#7b8cff;box-shadow:0 0 0 4px rgba(123,140,255,.18)}
+  input.ok{border-color:#2ecc71;box-shadow:0 0 0 4px rgba(46,204,113,.18)}
+  input.err{border-color:#e74c3c;box-shadow:0 0 0 4px rgba(231,76,60,.15)}
+  .feedback{min-height:24px;margin-top:10px;font-size:15px;font-weight:600;text-align:center}
+  .feedback.ok{color:#27ae60}
+  .feedback.err{color:#e74c3c}
+  .reveal{margin-top:14px;background:#fff7e6;border:1px solid #ffe1a8;border-radius:12px;padding:12px 16px;text-align:center;font-size:16px;
+    display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+  .reveal.ok{background:#e6f9ee;border-color:#a8e6c3}
+  .buttons{display:flex;gap:12px;justify-content:center;align-items:center;margin-top:18px;flex-wrap:wrap}
+  .speak{background:none;border:none;color:#8a94f8;cursor:pointer;padding:5px;border-radius:8px;display:inline-flex;align-items:center}
+  .speak:hover{color:#4f6df5;background:#eef1ff}
+  .shake{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+  @keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+  .hint{margin-top:14px;text-align:center;color:rgba(255,255,255,.75);font-size:13px}
+
+  /* результаты */
+  .score-label{text-align:center;color:#888;font-size:14px;text-transform:uppercase;letter-spacing:.08em}
+  .score{font-size:52px;font-weight:800;text-align:center;margin:4px 0 8px}
+  .verdict{text-align:center;color:#666;margin-bottom:22px;font-size:16px}
+  .list{display:flex;flex-direction:column;gap:8px;margin-bottom:26px;max-height:300px;overflow-y:auto;padding-right:4px}
+  .row{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#f7f8fc;border-radius:12px;padding:10px 14px;font-size:14px}
+  .row .pair{flex:1;line-height:1.5;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+  .row .en{font-weight:700}
+  .row .ru2{color:#666;width:100%}
+  .badge{flex-shrink:0;border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700}
+  .badge.good{background:#e6f9ee;color:#27ae60}
+  .badge.bad{background:#fdecea;color:#e74c3c}
+  .badge.none{background:#eef0f5;color:#999}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- МЕНЮ -->
+  <section id="screen-start" class="screen">
+    <h1>🇬 Communication Skills</h1>
+    <p class="subtitle">Тренажёр английских слов и фраз</p>
+
+    <div class="menu-label">Режим</div>
+    <div class="mode-row">
+      <button class="mode active" id="mode-ru-en" type="button"><b>RU → EN</b><span>видишь русское значение — отвечаешь по-английски</span></button>
+      <button class="mode" id="mode-en-ru" type="button"><b>EN → RU</b><span>видишь английское слово — выбираешь русский перевод</span></button>
+    </div>
+
+    <div class="menu-label">Челленджи</div>
+    <label class="toggle"><input type="checkbox" id="ch-timed"><span class="switch"></span>
+      <div><b>⏱ На время</b><small>10 сек на вопрос (в ручном вводе — 20 сек). Таймаут = ошибка</small></div></label>
+    <label class="toggle"><input type="checkbox" id="ch-lives"><span class="switch"></span>
+      <div><b>❤️ На жизни</b><small>3 жизни: каждая ошибка или таймаут отнимает одну</small></div></label>
+    <label class="toggle"><input type="checkbox" id="ch-manual"><span class="switch"></span>
+      <div><b>✍️ Ответ вручную</b><small>вводить ответ с клавиатуры вместо выбора из вариантов</small></div></label>
+
+    <div class="buttons" style="margin-top:26px"><button id="btn-start" class="btn btn-primary">Начать</button></div>
+  </section>
+
+  <!-- ИГРА -->
+  <section id="screen-game" class="screen nobg hidden">
+    <div class="topbar">
+      <span id="progress-text"></span>
+      <div class="bar"><div id="bar-fill"></div></div>
+      <span id="hearts" class="hidden"></span>
+      <span id="timer" class="hidden"></span>
+    </div>
+    <div class="card" id="card">
+      <div class="label" id="q-label"></div>
+      <div class="ru" id="prompt"></div>
+      <div id="options"></div>
+      <div id="manual-box" class="hidden">
+        <input id="answer" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="buttons">
+          <button id="btn-check" class="btn btn-primary">Проверить</button>
+          <button id="btn-next" class="btn btn-primary hidden">Дальше →</button>
+          <button id="btn-giveup" class="btn btn-ghost">Сдаюсь, показать ответ</button>
+        </div>
+      </div>
+      <div id="reveal" class="reveal hidden"></div>
+      <div id="feedback" class="feedback"></div>
+    </div>
+    <p class="hint" id="hint"></p>
+  </section>
+
+  <!-- РЕЗУЛЬТАТЫ -->
+  <section id="screen-results" class="screen hidden">
+    <h1>Результаты</h1>
+    <p class="score-label" style="margin-top:14px">Всего ошибок</p>
+    <div class="score" id="score-text">0</div>
+    <div class="verdict" id="verdict"></div>
+    <div class="list" id="results-list"></div>
+    <div class="center"><button id="btn-restart" class="btn btn-primary">Начать заново</button></div>
+  </section>
+
+</div>
+<script>
+const WORDS = [
+  {ru:'коммуникативные навыки', en:'communication skills'},
+  {ru:'эффектно говорить', en:'speak effectively'},
+  {ru:'убедительно выражать мысли и мнения', en:'express ideas and opinions persuasively'},
+  {ru:'писать на хорошем английском или любом другом языке', en:'write good English or any other language'},
+  {ru:'уметь ладить с другими людьми', en:'relate to and deal with other people'},
+  {ru:'коммуникативный', en:'communicative'},
+  {ru:'выразительный', en:'expressive'},
+  {ru:'убедительный', en:'persuasive'},
+  {ru:'устранитель проблем', en:'troubleshooter'},
+  {ru:'поддерживающий', en:'supportive'},
+  {ru:'творческий', en:'creative'},
+  {ru:'целеустремлённый', en:'goal oriented', alt:['goal-oriented']},
+  {ru:'многозадачный', en:'multitasking', alt:['multi-tasking']},
+  {ru:'ответственный', en:'responsible'},
+  {ru:'организованный', en:'well-organized', alt:['well organized']},
+  {ru:'постоянно повышать уровень знаний', en:'constantly upgrading qualifications / knowledge', alt:['constantly upgrading qualifications and knowledge','constantly upgrading qualifications']},
+  {ru:'осваивать новые навыки', en:'learn new skills'},
+  {ru:'быть открытым новым идеям', en:'be open to new ideas'},
+  {ru:'быть стрессоустойчивым к переменам', en:'not feel stressed by change', alt:['not feel stressed by changes']},
+  {ru:'быть готовым к переезду / командировкам', en:'be prepared to relocate / business trips', alt:['be prepared to relocate or business trips','be prepared to relocate']}
+];
+function norm(s){return s.toLowerCase().replace(/ё/g,'е').replace(/[-–—]/g,' ').replace(/[\/.,!?;:()]/g,' ').replace(/\s+/g,' ').trim();}
+WORDS.forEach(w=>{
+  w.acceptEn = new Set([w.en,...(w.alt||[])].map(norm));
+  w.acceptRu = new Set([norm(w.ru)]);
+});
+
+/* ---------- озвучка (Web Speech API: в Chrome/Edge это голоса Google) ---------- */
+let voices=[];
+function loadVoices(){ if('speechSynthesis' in window) voices=speechSynthesis.getVoices(); }
+if('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US'; u.rate=0.92;
+  const v=voices.find(v=>/google/i.test(v.name)&&v.lang.startsWith('en')) || voices.find(v=>v.lang.startsWith('en'));
+  if(v) u.voice=v;
+  speechSynthesis.speak(u);
+}
+const SPEAKER_SVG='<svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 16.5 12z"/><path d="M14 3.8v2.07a6.5 6.5 0 0 1 0 12.26v2.07a8.5 8.5 0 0 0 0-16.4z"/></svg>';
+function speakBtn(text,big){
+  const b=document.createElement('button');
+  b.type='button'; b.className='speak'; b.title='Прослушать';
+  if(big) b.innerHTML=SPEAKER_SVG.replace(/19/g,'24');
+  else b.innerHTML=SPEAKER_SVG;
+  b.onclick=e=>{ e.stopPropagation(); speak(text); };
+  return b;
+}
+
+/* ---------- состояние ---------- */
+const $=id=>document.getElementById(id);
+const S={mode:'ru-en',timed:false,lives:false,manual:false};
+let order=[],idx=0,stats=[],reached=[],totalErrors=0,livesLeft=3,locked=false,timerId=null,timeLeft=0;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function show(id){['screen-start','screen-game','screen-results'].forEach(s=>$(s).classList.add('hidden'));$(id).classList.remove('hidden');}
+function setFeedback(t,c){const f=$('feedback');f.textContent=t;f.className='feedback'+(c?' '+c:'');}
+function plural(n,f){const m=n%100;if(m>=11&&m<=14)return f[2];switch(n%10){case 1:return f[0];case 2:case 3:case 4:return f[1];default:return f[2];}}
+const correctText=w=> S.mode==='ru-en' ? w.en : w.ru;
+const isEnglishSide=()=> S.mode==='ru-en';
+
+/* ---------- меню ---------- */
+$('mode-ru-en').onclick=()=>{S.mode='ru-en';$('mode-ru-en').classList.add('active');$('mode-en-ru').classList.remove('active');};
+$('mode-en-ru').onclick=()=>{S.mode='en-ru';$('mode-en-ru').classList.add('active');$('mode-ru-en').classList.remove('active');};
+$('btn-start').onclick=start;
+$('btn-restart').onclick=start;
+
+function start(){
+  S.timed=$('ch-timed').checked; S.lives=$('ch-lives').checked; S.manual=$('ch-manual').checked;
+  order=shuffle(WORDS.slice()); stats=order.map(()=>0); reached=order.map(()=>false);
+  idx=0; totalErrors=0; livesLeft=3;
+  $('hearts').classList.toggle('hidden',!S.lives);
+  $('timer').classList.toggle('hidden',!S.timed);
+  $('hint').textContent = S.manual ? 'Можно нажать Enter, чтобы проверить' : 'Можно отвечать клавишами 1–4, 🔊 — прослушать слово';
+  show('screen-game'); render();
+}
+
+function renderHearts(){ $('hearts').textContent='❤️'.repeat(livesLeft)+'🖤'.repeat(Math.max(0,3-livesLeft)); }
+
+function stopTimer(){ if(timerId){clearInterval(timerId);timerId=null;} }
+function startTimer(){
+  stopTimer();
+  if(!S.timed) return;
+  timeLeft = S.manual ? 20 : 10;
+  paintTimer();
+  timerId=setInterval(()=>{ timeLeft--; paintTimer(); if(timeLeft<=0){ stopTimer(); onTimeout(); } },1000);
+}
+function paintTimer(){ const t=$('timer'); t.textContent='⏱ '+timeLeft; t.classList.toggle('low',timeLeft<=3); }
+
+function render(){
+  locked=false;
+  const w=order[idx]; reached[idx]=true;
+  $('progress-text').textContent=`Вопрос ${idx+1} / ${order.length}`;
+  $('bar-fill').style.width=(idx/order.length*100)+'%';
+  if(S.lives) renderHearts();
+  setFeedback('','');
+  $('reveal').classList.add('hidden');
+
+  const prompt=$('prompt'); prompt.innerHTML='';
+  if(S.mode==='en-ru'){
+    $('q-label').textContent='Как это по-русски?';
+    const span=document.createElement('span'); span.textContent=w.en; prompt.appendChild(span);
+    prompt.appendChild(speakBtn(w.en,true));
+  }else{
+    $('q-label').textContent='Как это по-английски?';
+    prompt.textContent=w.ru;
+  }
+
+  if(S.manual){
+    $('options').innerHTML=''; $('options').classList.add('hidden');
+    $('manual-box').classList.remove('hidden');
+    const inp=$('answer'); inp.value=''; inp.disabled=false; inp.className='';
+    inp.placeholder = isEnglishSide() ? 'Ответ по-английски...' : 'Ответ по-русски...';
+    $('btn-check').classList.remove('hidden');
+    $('btn-giveup').classList.remove('hidden');
+    $('btn-next').classList.add('hidden');
+    setTimeout(()=>inp.focus(),50);
+  }else{
+    $('manual-box').classList.add('hidden');
+    $('options').classList.remove('hidden');
+    const side = isEnglishSide() ? 'en' : 'ru';
+    const others = shuffle(WORDS.filter(x=>x!==w).map(x=>x[side])).slice(0,3);
+    const opts = shuffle([w[side],...others]);
+    const box=$('options'); box.innerHTML='';
+    opts.forEach(text=>{
+      const d=document.createElement('div');
+      d.className='option'; d.textContent=text;
+      if(side==='en') d.appendChild(speakBtn(text));
+      d.onclick=()=>pick(d,text,w);
+      box.appendChild(d);
+    });
+  }
+  startTimer();
+}
+
+/* ---------- ответы ---------- */
+function pick(el,text,w){
+  if(locked||el.dataset.done) return;
+  if(text===correctText(w)){
+    locked=true; stopTimer();
+    el.classList.add('correct');
+    [...$('options').children].forEach(c=>c.dataset.done='1');
+    setFeedback('Верно! ✅','ok');
+    setTimeout(next,900);
+  }else{
+    el.dataset.done='1'; el.classList.add('wrong');
+    registerMistake('Неверно! Выбери другой вариант 💪');
+  }
+}
+
+function checkManual(){
+  if(locked) return;
+  const inp=$('answer'), v=inp.value.trim();
+  if(!v){ setFeedback('Сначала впиши ответ ✍️','err'); return; }
+  const w=order[idx];
+  const ok = isEnglishSide() ? w.acceptEn.has(norm(v)) : w.acceptRu.has(norm(v));
+  if(ok){
+    locked=true; stopTimer();
+    inp.disabled=true; inp.classList.add('ok');
+    showReveal(w,true);
+    setFeedback('Верно! ✅','ok');
+    $('btn-check').classList.add('hidden');
+    $('btn-giveup').classList.add('hidden');
+    $('btn-next').classList.remove('hidden');
+    $('btn-next').focus();
+  }else{
+    inp.classList.remove('ok'); inp.classList.add('err');
+    const c=$('card'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+    registerMistake('Неверно! Пробуй ещё раз 💪');
+  }
+}
+
+function registerMistake(msg){
+  stats[idx]++; totalErrors++;
+  setFeedback(msg,'err');
+  if(S.lives){
+    livesLeft--; renderHearts();
+    if(livesLeft<=0){ locked=true; stopTimer(); setFeedback('Жизни закончились 💔','err'); setTimeout(()=>finish(true),1200); }
+  }
+}
+
+function onTimeout(){
+  if(locked) return;
+  locked=true; stats[idx]++; totalErrors++;
+  const w=order[idx];
+  if(!S.manual){
+    [...$('options').children].forEach(c=>{ c.dataset.done='1'; if(c.textContent===correctText(w) || c.firstChild?.textContent===correctText(w)) c.classList.add('correct'); });
+  }else{
+    $('answer').disabled=true;
+  }
+  showReveal(w,false);
+  setFeedback('Время вышло! ⏱','err');
+  if(S.lives){
+    livesLeft--; renderHearts();
+    if(livesLeft<=0){ setTimeout(()=>finish(true),1400); return; }
+  }
+  setTimeout(next,1600);
+}
+
+function giveUp(){
+  if(locked) return;
+  locked=true; stopTimer(); stats[idx]++; totalErrors++;
+  $('answer').disabled=true;
+  showReveal(order[idx],false);
+  setFeedback('','');
+  $('btn-check').classList.add('hidden');
+  $('btn-giveup').classList.add('hidden');
+  if(S.lives){
+    livesLeft--; renderHearts();
+    if(livesLeft<=0){ setFeedback('Жизни закончились 💔','err'); setTimeout(()=>finish(true),1200); return; }
+  }
+  $('btn-next').classList.remove('hidden');
+  $('btn-next').focus();
+}
+
+function showReveal(w,ok){
+  const r=$('reveal'); r.innerHTML=''; r.classList.remove('hidden'); r.classList.toggle('ok',!!ok);
+  const prefix=document.createElement('span'); prefix.textContent=(ok?'✅ ':'Правильный ответ: '); r.appendChild(prefix);
+  const b=document.createElement('b'); b.textContent=w.en; r.appendChild(b);
+  r.appendChild(speakBtn(w.en));
+  const ruSpan=document.createElement('span'); ruSpan.textContent=' — '+w.ru; r.appendChild(ruSpan);
+}
+
+function next(){ idx++; (idx>=order.length)?finish(false):render(); }
+
+/* ---------- результаты ---------- */
+function finish(failed){
+  stopTimer();
+  show('screen-results');
+  $('score-text').textContent=totalErrors;
+  let v;
+  if(failed) v=`💔 Жизни закончились! Пройдено ${idx} из ${order.length} вопросов.`;
+  else if(totalErrors===0) v='Идеально! Ни одной ошибки! 🏆';
+  else if(totalErrors<=3) v='Отличный результат! Почти безупречно 🎉';
+  else if(totalErrors<=7) v='Хорошо! Но некоторые слова стоит повторить 📚';
+  else v='Есть над чем поработать — потренируйся ещё раз! 💪';
+  $('verdict').textContent=v;
+  const items=order.map((w,i)=>({w,e:stats[i],r:reached[i]})).sort((a,b)=>(b.r-a.r)||(b.e-a.e));
+  const list=$('results-list'); list.innerHTML='';
+  items.forEach(it=>{
+    const row=document.createElement('div'); row.className='row';
+    const pair=document.createElement('div'); pair.className='pair';
+    const en=document.createElement('span'); en.className='en'; en.textContent=it.w.en; pair.appendChild(en);
+    pair.appendChild(speakBtn(it.w.en));
+    const ru2=document.createElement('span'); ru2.className='ru2'; ru2.textContent=it.w.ru; pair.appendChild(ru2);
+    const badge=document.createElement('span');
+    badge.className='badge '+(!it.r?'none':(it.e?'bad':'good'));
+    badge.textContent=!it.r?'—':(it.e?'❌ '+it.e+' '+plural(it.e,['ошибка','ошибки','ошибок']):'✅');
+    row.appendChild(pair); row.appendChild(badge);
+    list.appendChild(row);
+  });
+}
+
+/* ---------- клавиатура ---------- */
+$('btn-check').onclick=checkManual;
+$('btn-giveup').onclick=giveUp;
+$('btn-next').onclick=next;
+document.addEventListener('keydown',e=>{
+  if($('screen-game').classList.contains('hidden')) return;
+  if(e.key==='Enter' && !$('manual-box').classList.contains('hidden')){
+    if(!$('btn-next').classList.contains('hidden')) next(); else checkManual();
+    return;
+  }
+  const n=parseInt(e.key,10);
+  if(n>=1&&n<=4 && $('manual-box').classList.contains('hidden')){
+    const el=$('options').children[n-1];
+    if(el && !el.dataset.done) el.click();
+  }
+});
+</script>
+</body>
+</html>
